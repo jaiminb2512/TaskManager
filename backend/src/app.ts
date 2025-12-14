@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { connectDB } from './utils/dbConnect';
+import ApiResponseUtil from './utils/apiResponse';
 
 dotenv.config();
 
@@ -21,6 +22,10 @@ const startServer = async () => {
         console.log(`Server is running on port ${PORT}`);
     });
 };
+
+app.get('/', (req, res) => {
+    return ApiResponseUtil.success(res, 'server is running...');
+});
 
 startServer();
 
