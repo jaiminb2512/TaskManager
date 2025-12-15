@@ -12,12 +12,63 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Status {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+}
+
 model User {
   id        String   @id @default(uuid())
+  name      String
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  tasksCreated  Task[] @relation("TaskCreator")
+  tasksAssigned Task[] @relation("TaskAssignee")
+  notifications Notification[]
+
   @@map("users")
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String   // Limit to 100 chars in DTO
+  description String
+  dueDate     DateTime
+  priority    Priority
+  status      Status   @default(TODO)
+
+  creatorId   String
+  creator     User     @relation("TaskCreator", fields: [creatorId], references: [id])
+
+  assignedToId String?
+  assignedTo   User?   @relation("TaskAssignee", fields: [assignedToId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("tasks")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  isRead    Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
 }

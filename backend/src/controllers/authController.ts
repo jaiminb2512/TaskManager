@@ -7,6 +7,7 @@ import ApiResponseUtil from '../utils/apiResponse';
 interface SignUpRequest {
     email: string;
     password: string;
+    name: string;
 }
 
 interface SignInRequest {
@@ -16,12 +17,12 @@ interface SignInRequest {
 
 export const signUp = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { email, password }: SignUpRequest = req.body;
+        const { email, password, name }: SignUpRequest = req.body;
 
-        if (!email || !password) {
+        if (!email || !password || !name) {
             return ApiResponseUtil.validationError(
                 res,
-                'Email and password are required'
+                'Email, password, and name are required'
             );
         }
 
@@ -60,9 +61,11 @@ export const signUp = async (req: Request, res: Response): Promise<Response> => 
             data: {
                 email: normalizedEmail,
                 password: hashedPassword,
+                name: name,
             },
             select: {
                 id: true,
+                name: true,
                 email: true,
                 createdAt: true,
                 updatedAt: true,
@@ -139,6 +142,7 @@ export const signIn = async (req: Request, res: Response): Promise<Response> => 
             {
                 user: {
                     id: user.id,
+                    name: user.name,
                     email: user.email,
                     createdAt: user.createdAt,
                     updatedAt: user.updatedAt,
