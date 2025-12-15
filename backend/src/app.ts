@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { connectDB } from './utils/dbConnect';
 import ApiResponseUtil from './utils/apiResponse';
+import authRoutes from './routes/authRoutes';
 
 dotenv.config();
 
@@ -9,6 +10,9 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/api/auth', authRoutes);
 
 const startServer = async () => {
     const connection = await connectDB();
