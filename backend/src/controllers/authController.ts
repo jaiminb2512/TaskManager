@@ -1,9 +1,15 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import prisma from '../utils/prisma';
 import ApiResponseUtil from '../utils/apiResponse';
 
 interface SignUpRequest {
+    email: string;
+    password: string;
+}
+
+interface SignInRequest {
     email: string;
     password: string;
 }
@@ -84,6 +90,70 @@ export const signUp = async (req: Request, res: Response): Promise<Response> => 
         return ApiResponseUtil.internalError(
             res,
             'An error occurred during sign up',
+            errorMessage
+        );
+    }
+};
+
+export const signIn = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { email, password }: SignInRequest = req.body;
+
+        if (!email || !password) {
+            return ApiResponseUtil.validationError(
+                res,
+                'Email and password are required'
+            );
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+
+        const user = await prisma.user.findUnique({
+            where: { email: normalizedEmail },
+        });
+
+        if (!user) {
+            return ApiResponseUtil.unauthorized(
+                res,
+                'Invalid email or password'
+            );
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return ApiResponseUtil.unauthorized(
+                res,
+                'Invalid email or password'
+            );
+        }
+
+        const token = jwt.sign(
+            { userId: user.id, email: user.email },
+            process.env.JWT_SECRET || 'your-secret-key',
+            { expiresIn: '24h' }
+        );
+
+        return ApiResponseUtil.success(
+            res,
+            {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    createdAt: user.createdAt,
+                    updatedAt: user.updatedAt,
+                },
+                token,
+            },
+            'Sign in successful'
+        );
+    } catch (error: unknown) {
+        const errorMessage: string = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('Sign in error:', errorMessage);
+
+        return ApiResponseUtil.internalError(
+            res,
+            'An error occurred during sign in',
             errorMessage
         );
     }
