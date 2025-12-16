@@ -13,7 +13,7 @@ interface AuthRequest extends Request {
 interface CreateTaskDto {
     title: string;
     description: string;
-    dueDate: string; // ISO Date string
+    dueDate: string;
     priority: Priority;
     assignedToId?: string;
 }
@@ -29,8 +29,9 @@ interface UpdateTaskDto {
 
 export const createTask = async (req: AuthRequest, res: Response) => {
     try {
-        const { title, description, dueDate, priority, assignedToId }: CreateTaskDto = req.body;
+        const { title, description, dueDate, priority }: CreateTaskDto = req.body;
         const userId = req.user?.userId;
+        let assignedToId = req.body?.assignedToId;
 
         if (!userId) {
             return ApiResponseUtil.unauthorized(res, 'User not authenticated');
@@ -38,6 +39,10 @@ export const createTask = async (req: AuthRequest, res: Response) => {
 
         if (!title || !description || !dueDate || !priority) {
             return ApiResponseUtil.validationError(res, 'Missing required fields');
+        }
+
+        if (!assignedToId) {
+            assignedToId = userId;
         }
 
         if (title.length > 100) {
@@ -56,7 +61,7 @@ export const createTask = async (req: AuthRequest, res: Response) => {
                 dueDate: new Date(dueDate),
                 priority,
                 creatorId: userId,
-                assignedToId: assignedToId || null,
+                assignedToId: assignedToId,
             },
             include: {
                 creator: { select: { id: true, name: true, email: true } },

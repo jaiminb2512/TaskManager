@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Prisma Schema
+// Docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -34,29 +31,39 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tasksCreated  Task[] @relation("TaskCreator")
-  tasksAssigned Task[] @relation("TaskAssignee")
-  notifications Notification[]
+  // Relations
+  tasksCreated     Task[]         @relation("TaskCreator")
+  tasksAssigned    Task[]         @relation("TaskAssignee")
+  notifications    Notification[]
 
   @@map("users")
 }
 
 model Task {
   id          String   @id @default(uuid())
-  title       String   // Limit to 100 chars in DTO
+  title       String   @db.VarChar(100)
   description String
   dueDate     DateTime
   priority    Priority
   status      Status   @default(TODO)
 
+  // Creator
   creatorId   String
   creator     User     @relation("TaskCreator", fields: [creatorId], references: [id])
 
-  assignedToId String?
-  assignedTo   User?   @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  // Assignee (MANDATORY)
+  assignedToId String
+  assignedTo   User     @relation("TaskAssignee", fields: [assignedToId], references: [id])
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // Indexes for dashboards & filtering
+  @@index([creatorId])
+  @@index([assignedToId])
+  @@index([dueDate])
+  @@index([status])
+  @@index([priority])
 
   @@map("tasks")
 }
@@ -67,8 +74,8 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
   message   String
   isRead    Boolean  @default(false)
-  
   createdAt DateTime @default(now())
 
+  @@index([userId])
   @@map("notifications")
 }
