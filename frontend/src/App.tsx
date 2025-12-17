@@ -1,10 +1,17 @@
-function App() {
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import SignIn from "./pages/auth/SignIn";
+import SignUp from "./pages/auth/SignUp";
 
+function App() {
   return (
-    <div>
-      <h1 className="text-3xl font-bold underline bg-red-500">Task Manager</h1>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/signin" replace />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
