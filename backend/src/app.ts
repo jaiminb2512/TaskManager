@@ -4,6 +4,7 @@ import { connectDB } from './utils/dbConnect';
 import ApiResponseUtil from './utils/apiResponse';
 import authRoutes from './routes/authRoutes';
 import taskRoutes from './routes/taskRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 const startServer = async () => {
     const connection = await connectDB();
