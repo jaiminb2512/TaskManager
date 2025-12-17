@@ -2,7 +2,7 @@ function App() {
 
   return (
     <div>
-      <h1>Task Manager</h1>
+      <h1 className="text-3xl font-bold underline bg-red-500">Task Manager</h1>
     </div>
   )
 }
