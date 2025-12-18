@@ -27,9 +27,20 @@ export interface AuthResponse {
     };
 }
 
+export interface SignUpPayload {
+    name: string;
+    email: string;
+    password: string;
+}
+
 export const authService = {
     signIn: async (data: SignInFormValues): Promise<AuthResponse> => {
         const response = await api.post<AuthResponse>("/auth/signin", data);
+        return response.data;
+    },
+
+    signUp: async (data: SignUpPayload): Promise<AuthResponse> => {
+        const response = await api.post<AuthResponse>("/auth/signup", data);
         return response.data;
     },
 };

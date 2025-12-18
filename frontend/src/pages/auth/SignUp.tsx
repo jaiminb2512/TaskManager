@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { authService } from "../../services/authService";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -55,13 +56,26 @@ export default function SignUp() {
         },
     });
 
+    const navigate = useNavigate();
+
     async function onSubmit(data: SignUpFormValues) {
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Sign Up Data:", data);
+        try {
+            const { confirmPassword, ...signUpData } = data;
+            await authService.signUp(signUpData);
+            navigate("/signin");
+        } catch (error: any) {
+            console.error("Sign up failed:", error);
+            // Ideally we would show a toast or error message here
+            // For now, we can perhaps set a form error if available or alert
+            if (error.response?.data?.message) {
+                alert(error.response.data.message); // Simple feedback for now
+            } else {
+                alert("Something went wrong. Please try again.");
+            }
+        } finally {
             setIsLoading(false);
-        }, 2000);
+        }
     }
 
     return (
