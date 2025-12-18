@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
+import { authService, signInSchema, type SignInFormValues } from "../../services/authService";
 import { Eye, EyeOff } from "lucide-react";
 import {
     Card,
@@ -15,14 +15,15 @@ import {
     CardTitle,
 } from "../../components/ui/card";
 
-const signInSchema = z.object({
-    email: z.string().email({ message: "Please enter a valid email address." }),
-    password: z
-        .string()
-        .min(6, { message: "Password must be at least 6 characters long." }),
-});
+// The signInSchema and SignInFormValues are now imported from authService.ts
+// const signInSchema = z.object({
+//     email: z.string().email({ message: "Please enter a valid email address." }),
+//     password: z
+//         .string()
+//         .min(6, { message: "Password must be at least 6 characters long." }),
+// });
 
-type SignInFormValues = z.infer<typeof signInSchema>;
+// type SignInFormValues = z.infer<typeof signInSchema>;
 
 export default function SignIn() {
     const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +33,7 @@ export default function SignIn() {
         register,
         handleSubmit,
         formState: { errors },
+        setError,
     } = useForm<SignInFormValues>({
         resolver: zodResolver(signInSchema),
         defaultValues: {
@@ -40,13 +42,27 @@ export default function SignIn() {
         },
     });
 
+    const navigate = useNavigate();
+
     async function onSubmit(data: SignInFormValues) {
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Sign In Data:", data);
+        try {
+            const response = await authService.signIn(data);
+            if (response.success) {
+                localStorage.setItem("token", response.data.token);
+                localStorage.setItem("user", JSON.stringify(response.data.user));
+                // Using a simple alert for now as no toast library was requested yet, 
+                // but normally would use toast here.
+                console.log("Login successful", response.data);
+                navigate("/"); // Navigate to dashboard/home
+            }
+        } catch (error: any) {
+            console.error("Login failed", error);
+            const errorMessage = error.response?.data?.message || "Something went wrong. Please try again.";
+            setError("root", { message: errorMessage });
+        } finally {
             setIsLoading(false);
-        }, 2000);
+        }
     }
 
     return (
@@ -62,6 +78,11 @@ export default function SignIn() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                        {errors.root && (
+                            <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm border border-red-200">
+                                {errors.root.message}
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input

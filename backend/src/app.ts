@@ -5,6 +5,7 @@ import ApiResponseUtil from './utils/apiResponse';
 import authRoutes from './routes/authRoutes';
 import taskRoutes from './routes/taskRoutes';
 import notificationRoutes from './routes/notificationRoutes';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -12,6 +13,8 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+
 
 // Routes
 app.use('/api/auth', authRoutes);
