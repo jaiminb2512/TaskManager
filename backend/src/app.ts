@@ -43,6 +43,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
 
+import { createServer } from 'http';
+import { initSocket } from './utils/socket';
+
 const startServer = async () => {
     const connection = await connectDB();
     if (!connection) {
@@ -50,8 +53,13 @@ const startServer = async () => {
         process.exit(1);
     }
 
+    const httpServer = createServer(app);
+
+    // Initialize Socket.io
+    initSocket(httpServer, allowedOrigins);
+
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });
 };

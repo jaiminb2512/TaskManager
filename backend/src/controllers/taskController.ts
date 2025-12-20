@@ -10,6 +10,8 @@ interface AuthRequest extends Request {
     };
 }
 
+import { getIO } from '../utils/socket';
+
 export const createTask = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.userId;
@@ -24,7 +26,24 @@ export const createTask = async (req: AuthRequest, res: Response) => {
 
         const task = await taskService.createTask(userId, validation.data);
 
-        // TODO: Emit socket event here
+        // Emit socket event
+        try {
+            const io = getIO();
+            io.emit('task:created', task);
+
+            // If assigned to someone else, notify them personally (optional for basic req but good for "Assignment Notification")
+            if (task.assignedToId && task.assignedToId !== userId) {
+                // In a real app, we might emit to a specific user room like `user:${task.assignedToId}`
+                io.emit('notification:assigned', {
+                    userId: task.assignedToId,
+                    taskId: task.id,
+                    message: `You have been assigned a new task: ${task.title}`
+                });
+            }
+
+        } catch (socketError) {
+            console.error('Socket emit error:', socketError);
+        }
 
         return ApiResponseUtil.created(res, task, 'Task created successfully');
     } catch (error: any) {
@@ -81,7 +100,22 @@ export const updateTask = async (req: AuthRequest, res: Response) => {
 
         const task = await taskService.updateTask(id, validation.data);
 
-        // TODO: Emit socket event here
+        // Emit socket event
+        try {
+            const io = getIO();
+            io.emit('task:updated', task);
+
+            // If reassigned, notify the new assignee
+            if (validation.data.assignedToId && validation.data.assignedToId !== req.user?.userId) {
+                io.emit('notification:assigned', {
+                    userId: validation.data.assignedToId,
+                    taskId: task?.id,
+                    message: `You have been assigned a task: ${task?.title}`
+                });
+            }
+        } catch (socketError) {
+            console.error('Socket emit error:', socketError);
+        }
 
         return ApiResponseUtil.success(res, task, 'Task updated successfully');
     } catch (error: any) {
@@ -106,7 +140,13 @@ export const deleteTask = async (req: AuthRequest, res: Response) => {
 
         await taskService.deleteTask(id);
 
-        // TODO: Emit socket event here
+        // Emit socket event
+        try {
+            const io = getIO();
+            io.emit('task:deleted', { id });
+        } catch (socketError) {
+            console.error('Socket emit error:', socketError);
+        }
 
         return ApiResponseUtil.success(res, null, 'Task deleted successfully');
     } catch (error: any) {
