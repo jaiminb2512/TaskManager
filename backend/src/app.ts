@@ -68,6 +68,10 @@ app.get('/', (req, res) => {
     return ApiResponseUtil.success(res, 'server is running...');
 });
 
-startServer();
+// Only start the server if we are not running on Vercel
+// Vercel handles the server start-up internally via the exported app
+if (!process.env.VERCEL) {
+    startServer();
+}
 
 export { app };
