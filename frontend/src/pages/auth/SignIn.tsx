@@ -49,10 +49,8 @@ export default function SignIn() {
         try {
             const response = await authService.signIn(data);
             if (response.success) {
-                localStorage.setItem("token", response.data.token);
                 localStorage.setItem("user", JSON.stringify(response.data.user));
-                // Using a simple alert for now as no toast library was requested yet, 
-                // but normally would use toast here.
+                // Token is now stored in HttpOnly cookie
                 console.log("Login successful", response.data);
                 navigate("/"); // Navigate to dashboard/home
             }

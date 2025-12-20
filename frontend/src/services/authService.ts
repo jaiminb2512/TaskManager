@@ -23,7 +23,6 @@ export interface AuthResponse {
     message: string;
     data: {
         user: User;
-        token: string;
     };
 }
 
