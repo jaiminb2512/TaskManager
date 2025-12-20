@@ -137,6 +137,13 @@ export const signIn = async (req: Request, res: Response): Promise<Response> => 
             { expiresIn: '24h' }
         );
 
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        });
+
         return ApiResponseUtil.success(
             res,
             {
@@ -146,8 +153,7 @@ export const signIn = async (req: Request, res: Response): Promise<Response> => 
                     email: user.email,
                     createdAt: user.createdAt,
                     updatedAt: user.updatedAt,
-                },
-                token,
+                }
             },
             'Sign in successful'
         );

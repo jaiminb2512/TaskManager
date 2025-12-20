@@ -11,13 +11,13 @@ interface AuthRequest extends Request {
 
 export const authenticateCallback = (req: AuthRequest, res: Response, next: NextFunction): void => {
     const authHeader = req.headers.authorization;
+    let token = '';
 
-    if (!authHeader) {
-        ApiResponseUtil.unauthorized(res, 'No token provided');
-        return;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
+        token = req.cookies.token;
     }
-
-    const token = authHeader.split(' ')[1];
 
     if (!token) {
         ApiResponseUtil.unauthorized(res, 'No token provided');
