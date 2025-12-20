@@ -6,7 +6,7 @@ class SocketService {
     connect() {
         if (this.socket) return;
 
-        const API_URL = import.meta.env.VITE_API_URL
+        const API_URL = import.meta.env.VITE_WEBSOCKET_URL;
 
         this.socket = io(API_URL, {
             withCredentials: true,
