@@ -13,6 +13,7 @@ const poolConfig: PoolConfig = {
     connectionString: databaseUrl,
     connectionTimeoutMillis: 10000,
     idleTimeoutMillis: 30000,
+    ssl: { rejectUnauthorized: false }
 };
 
 const pool: Pool = new Pool(poolConfig);
