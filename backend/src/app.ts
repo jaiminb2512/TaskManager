@@ -12,9 +12,29 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = (process.env.FRONTEND_URLS || '').split(',').map(url => url.trim());
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            // allow requests with no origin (like Postman)
+            if (!origin) return callback(null, true);
+
+            if (allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
+        credentials: true, // 🔴 REQUIRED for cookies
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+
 app.use(cookieParser());
 
 
